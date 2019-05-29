@@ -24,14 +24,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>소스 파일\Main</Filter>
-    </ClCompile>
     <ClCompile Include="0_Jpg2Bmp.cpp">
       <Filter>소스 파일\Image</Filter>
     </ClCompile>
     <ClCompile Include="Bmp2Console.cpp">
       <Filter>소스 파일\Console</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일\Main</Filter>
     </ClCompile>
     <ClCompile Include="4_image_func.cpp">
       <Filter>소스 파일\Image</Filter>
