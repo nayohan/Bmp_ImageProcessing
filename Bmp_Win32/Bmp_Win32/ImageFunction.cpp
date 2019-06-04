@@ -68,7 +68,6 @@ void write_image() {
 		fwrite(output[i], r_width, 1, fo);
 	}
 	fclose(fo);
-	printf("Write To output.bmp Successfully\n");
 }
 void free_mem() {
 	for (int i = 0; i < height; i++) {
@@ -80,8 +79,12 @@ void free_mem() {
 	free(temp);
 	free(output);
 }
-
-void swap(int i, int j, int k, int l) {
+void swap_int(int* a, int* b) {
+	int temp = *a;
+	*a = *b;
+	*a = temp;
+}
+void swap_output(int i, int j, int k, int l) {
 	unsigned char tmp = output[i][j];
 	output[i][j] = output[k][l];
 	output[k][l] = tmp;
@@ -98,6 +101,10 @@ void reset() {
 	size = r_width * height;
 	fclose(fi);
 
+	for (int i = 0; i < height; i++) {
+		temp[i] = (unsigned char*)malloc(sizeof(unsigned char) * r_width);
+		output[i] = (unsigned char*)malloc(sizeof(unsigned char) * r_width);
+	}
 	for (int i = 0; i < height; i++)
 	{
 		for (int j = 0; j < r_width; j++)
@@ -114,9 +121,9 @@ void reset() {
 void mirror() {
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < n_width/2; j = j + 3) {
-			swap(i, j, i, n_width - j - 3);
-			swap(i, j + 1, i, n_width - j - 2);
-			swap(i, j + 2, i, n_width - j - 1);
+			swap_output(i, j, i, n_width - j - 3);
+			swap_output(i, j + 1, i, n_width - j - 2);
+			swap_output(i, j + 2, i, n_width - j - 1);
 			//printf("%x %x %x ", output[i][j], output[i][j + 1], output[i][j + 2]);
 		}
 		for (int k = 0; k < padding; k++) {
@@ -129,7 +136,7 @@ void mirror() {
 void flip() {
 	for (int i = 0; i < height/2; i++) {
 		for (int j = 0; j < r_width; j++)	{
-			swap(i, j, height - i - 1, j);
+			swap_output(i, j, height - i - 1, j);
 			//printf("%x ", output[i][j]);
 		}
 		//printf("\n");
@@ -137,54 +144,58 @@ void flip() {
 	//printf("\n");
 }
 void crop(int x1, int x2, int y1, int y2) {
+	if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0) {
+		return;
+	}
+	if (x1 > width || x2 > width || y1 > height || y2 > height) {
+		return;
+	}
 	int tmp_h = abs(y2 - y1);
 	int tmp_w = abs(x2 - x1);
 	int tmp_p = (4 - (tmp_w * 3 % 4)) % 4;
 	int tmp_r_w = (tmp_w * 3) + tmp_p;
 	height = tmp_h;
+	width = tmp_w;
+	padding = tmp_p;
 	r_width = tmp_r_w;
 	size = tmp_r_w * tmp_h;
 	infoHeader.biWidth = tmp_w;
 	infoHeader.biHeight = tmp_h;
 	fileHeader.bfSize = size;
 
-	/* 상식적으로 해야될거 같은데 하면 free오류에다가 재할당 할필요없이 알아서 조정되는듯
-	for (int i = 0; i < height; i++) {
-		free(output[i]);
-	}
-	free(output);
-
-	output = (unsigned char**)malloc(sizeof(unsigned char*) * height);
-	for (int i = 0; i < height; i++) {
-		output[i] = (unsigned char*)malloc(sizeof(unsigned char) * r_width);
-	}*/
-
 	int k = 0, l = 0;
-	if (y2 > y1) {
-		if (x2 > x1) {
-			for (int i = y1; i < y2; i++) {							//행
-				for (int j = x1 * 3; j < x2 * 3; j++) {				//열
+	int swap_temp;
+	if (y2 < y1) {
+		swap_temp = y2;
+		y2 = y1;
+		y1 = swap_temp;
+	}
+	if (x2 < x1) {
+		swap_temp = x2;
+		x2 = x1;
+		x1 = swap_temp;
+	}
+	if (y1 < y2) {
+		if (x1 < x2) {
+			for (int i = y1; i < y2; i++) {
+				for (int j = x1 * 3; j < x2 * 3; j++) {
 					output[k][l] = output[i][j];
-					//printf("%x ", output[k][l]);
 					l++;
 				}
-				for (int j = 0; j < tmp_p; j++) {				//패딩
+				for (int j = 0; j < tmp_p; j++) {	
 					output[k][l] = 0;
-					//printf("%x ", output[k][l]);
 					l++;
 				}
 				k++;
 				l = 0;
-				//printf("\n");
 			}
 		}
 	}
-	else {
-
-	}
 }
 void rotate() {
-	//이전값 잠시 저장
+	for (int i = 0; i < height; i++) {
+		temp[i] = (unsigned char*)malloc(sizeof(unsigned char) * r_width);
+	}
 	for (int i = 0; i < height; i++)
 	{
 		for (int j = 0; j < r_width; j++)
@@ -192,7 +203,6 @@ void rotate() {
 			temp[i][j] = output[i][j];
 		}
 	}
-
 	int tmp = height;
 	height = width;
 	width = tmp;
@@ -202,39 +212,22 @@ void rotate() {
 
 	infoHeader.biWidth = width;
 	infoHeader.biHeight = height;
-	/*
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < r_width; j++)
-		{
-			printf("%.2x", temp[i][j]);
-			if (j % 3 == 2) {
-				printf(" ");
-			}
-		}
-
-		printf("\n");
+	for (int i = 0; i < height; i++) {
+		output[i] = (unsigned char*)malloc(sizeof(unsigned char) * r_width);
 	}
-	printf("---------------------------------------------\n");*/
+
 	int k = 0, l = 0;
 	for (int i = height-1; i >= 0; i--) {
 		for (int j = 0; j  < n_width; j = j + 3){
 			output[i][j] = temp[k][l];
 			output[i][j+1] = temp[k][l+1];
 			output[i][j+2] = temp[k][l+2];
-			//printf("%.2x", output[i][j]);
-			//printf("%.2x", output[i][j+1]);
-			//printf("%.2x", output[i][j+2]);
-			//printf(" ");
 			k++;
 		}
 		
 		for (int k = 0; k < padding; k++) {
 			output[i][n_width + k] = 0;
-			//printf("%.2x", output[i][n_width + k]);
-			//printf(" ");
 		}
-		//printf("\n");
 		k = 0;
 		l = l + 3;
 	}
@@ -247,8 +240,8 @@ void brightness(int v) {
 			if (output[i][j] + v > 255) {
 				output[i][j] = 255;
 			}
-			else if (output[i][j] + v <= 0) {
-				output[i][j] = 1;
+			else if (output[i][j] + v < 0) {
+				output[i][j] = 0;
 			}
 			else {
 				output[i][j] = output[i][j] + v;
@@ -266,22 +259,102 @@ void contrast(int _c) {
 	for (int i = 0; i < height; i++) 	{
 		for (int j = 0; j < n_width; j++)
 		{
-			output[i][j] = contrast_factor(_c, i, j);
+			if (contrast_factor(_c, i, j) > 255) {
+				output[i][j] = 255;
+			}
+			else if (contrast_factor(_c, i, j) < 0) {
+				output[i][j] = 0;
+			}
+			else {
+				output[i][j] = contrast_factor(_c, i, j);
+			}
 		}
 	}
 }
 
-void grayscale_fillter() {
+
+float returnYval(float x1, float y1, float x2, float y2, float x_val) { //두점의좌표로 X에 대한 Y값 계산하는 함수
+	//ax+b;
+	float a = (y2 - y1) / (x2 - x1);
+	float b =  y1 - a * x1;
+	return a * x_val + b;
+}
+void grayscale_fillter(float gray_pos) {
+	float pos = gray_pos / 10;
+	float r = 0.2126;
+	float g = 0.7152;
+	float b = 0.0722;
+
+	//그레이  //(0,C) (1,1) 함수 0에가까울수록 1을, 1에 가까울수록  C에 가까워진다.
+	float g_r = returnYval(0, 1, 1, r, pos);
+	float g_g = returnYval(0, 1, 1, g, pos);
+	float g_b = returnYval(0, 1, 1, b, pos);
+
+	//컬러 상관 //(0,C), (1,0) 함수 0에가까울수록 0을, 1에 가까울수록  C에 가까워진다.
+	float c_r = returnYval(0, 0, 1, r, pos);
+	float c_g = returnYval(0, 0, 1, g, pos);
+	float c_b = returnYval(0, 0, 1, b, pos);
+	
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < n_width; j = j + 3) {
-			int r = output[i][j];
-			int g = output[i][j+1];
-			int b = output[i][j+2];
-			int m = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-			output[i][j] = output[i][j + 1] = output[i][j + 2] = m;
+			int R = input[i][j];
+			int G = input[i][j+1];
+			int B = input[i][j+2];
+			output[i][j] = (g_r * R + c_g * G + c_b*  B);
+			output[i][j + 1] = (c_r * R + g_g * G + c_b * B);
+			output[i][j + 2] = (c_r * R + c_g * G + g_b * B);
 		}
 		for (int k = 0; k < padding; k++) {
 			output[i][n_width + k] = 0;
 		}
 	}
+}
+void sepiaFilter() {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < n_width; j = j + 3) {
+			int r = output[i][j];
+			int g = output[i][j + 1];
+			int b = output[i][j + 2];
+			output[i][j] = r * 0.3588 + g * 0.7044 + b * 0.1368;
+			output[i][j + 1] = r * 0.2990 + g * 0.5870 + b * 0.1140;
+			output[i][j + 2] = r * 0.2392 + g * 0.4696 + b * 0.0912;
+		}
+		for (int k = 0; k < padding; k++) {
+			output[i][n_width + k] = 0;
+		}
+	}
+}
+
+int gaussian_distribution(int _blur_sz, int i, int j) {
+	int blur_val = 0;
+
+
+	return blur_val;
+}
+void blur_fillter(int blur_sz) {
+	int** gaussian = (int**)malloc(sizeof(int*) * blur_sz);
+	for (int i = 0; i < blur_sz; i++) 	{
+		gaussian[i] = (int*)malloc(sizeof(int) * blur_sz);
+	}
+	for (int i = 0; i < blur_sz; i++) 	{
+		for (int j = 0; j < blur_sz; j++) 	{
+			//gaussian[i][j]=
+		}
+	}
+	for (int i = 0; i < height; i= i + 3) {
+		for (int j = 0; j < n_width; j = j + 3) {
+			for (int l = 0; l < 3; l++) {
+				for (int k = 0; k < 9; k++)
+				{
+					//output[i+l][j+k]= 
+				}
+			}
+		}
+		for (int k = 0; k < padding; k++) {
+			output[i][n_width + k] = 0;
+		}
+	}
+}
+void sharpen_fillter(int shapen_pos) {
+
 }
