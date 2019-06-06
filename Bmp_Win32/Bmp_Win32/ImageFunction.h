@@ -5,6 +5,7 @@ struct filter_pos;
 void read_image();
 void write_image();
 void free_mem();
+void prevset();
 void reset();
 
 void mirror();
@@ -15,6 +16,7 @@ void brightness(int v);
 void contrast(int v);
 
 void grayscale_fillter(float gray_pos);
+void sepia_filter(int sepia_pos);
 void blur_fillter(int blur_pos);
 void sharpen_fillter(int sharpen_pos);
 
