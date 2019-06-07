@@ -242,6 +242,17 @@ void brightness(int v) {
 		}
 	}
 }
-void contrast(int v) {
-
+int contrast_factor(int _c, int _i, int _j) {
+	int retVal;
+	float F = (259 * (_c + 255)) / (255 * (259 - _c));
+	retVal = F * (output[_i][_j] - 128) + 128;
+	return retVal;
+}
+void contrast(int _c) {
+	for (int i = 0; i < height; i++) 	{
+		for (int j = 0; j < n_width; j++)
+		{
+			output[i][j] = contrast_factor(_c, i, j);
+		}
+	}
 }

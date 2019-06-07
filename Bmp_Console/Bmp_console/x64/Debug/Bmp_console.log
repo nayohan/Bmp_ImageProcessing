@@ -1,9 +1,2 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (opencv2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  4_image_func.cpp
-D:\MEGA\GitHub\nayohan\Bmp_ImageProcessing\Bmp_Console\Bmp_console\4_image_func.cpp(19,1): warning C4996:  'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\stdio.h(208): message :  'fopen' 선언을 참조하십시오.
-D:\MEGA\GitHub\nayohan\Bmp_ImageProcessing\Bmp_Console\Bmp_console\4_image_func.cpp(61,1): warning C4996:  'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\stdio.h(208): message :  'fopen' 선언을 참조하십시오.
-D:\MEGA\GitHub\nayohan\Bmp_ImageProcessing\Bmp_Console\Bmp_console\4_image_func.cpp(181,11): warning C4477:  'printf' : 서식 문자열 '%x'에 'unsigned int' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'unsigned char *'입니다.
-D:\MEGA\GitHub\nayohan\Bmp_ImageProcessing\Bmp_Console\Bmp_console\4_image_func.cpp(181,11): warning C4313:  'printf': 서식 문자열의 '%x'이(가) 인수 1('unsigned char *' 형식)과(와) 충돌합니다.
   Bmp_console.vcxproj -> D:\MEGA\GitHub\nayohan\Bmp_ImageProcessing\Bmp_Console\x64\Debug\Bmp_console.exe
